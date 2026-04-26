@@ -11,7 +11,7 @@ DERIVED_DATA_PATH="$BUILD_DIR/DerivedData"
 STAGING_DIR="$BUILD_DIR/dmg-staging"
 RELEASE_DIR="$PROJECT_DIR/releases/unsigned"
 DMG_BACKGROUND_SOURCE="${CODE_ISLAND_DMG_BACKGROUND_SOURCE:-$PROJECT_DIR/docs/images/code-island-dmg-installer-background.png}"
-DMG_LOGO_SOURCE="${CODE_ISLAND_DMG_LOGO_SOURCE:-$PROJECT_DIR/docs/images/code-island-icon-transparent.svg}"
+DMG_LOGO_SOURCE="${CODE_ISLAND_DMG_LOGO_SOURCE:-$PROJECT_DIR/docs/images/code-island-icon.svg}"
 
 APP_BUNDLE_NAME="Code Island.app"
 APP_PRODUCT_NAME="CodeIsland"

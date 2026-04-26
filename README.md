@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/macOS-14%2B-0A84FF?style=flat-square&logo=apple&logoColor=white" alt="macOS 14 or later">
   <img src="https://img.shields.io/badge/Swift-6.1-FA7343?style=flat-square&logo=swift&logoColor=white" alt="Swift 6.1">
   <img src="https://img.shields.io/badge/Clients-11%2B-111827?style=flat-square" alt="Supports 11 plus client families">
-  <img src="https://img.shields.io/badge/License-Apache%202.0-4F46E5?style=flat-square" alt="Apache 2.0 license">
+  <img src="https://img.shields.io/badge/License-MIT-4F46E5?style=flat-square" alt="MIT license">
 </p>
 
 <p align="center">
@@ -119,7 +119,7 @@ The OpenClaw feature poster in `docs/images/code-island-openclaw-poster.png` is 
 
 ### Download a Release
 
-1. Visit the [official website](https://erha19.github.io/code-island/) for the product overview and latest download link, or go straight to [Releases](https://github.com/erha19/code-island/releases).
+1. Visit the [Git repository](https://git.n.xiaomi.com/cloudpm/codeisland/) for the product overview and latest download link, or go straight to [Releases](https://git.n.xiaomi.com/cloudpm/codeisland/releases).
 2. Download the latest DMG.
 3. Move `Code Island.app` into your Applications folder.
 4. Launch the app and start the clients you want Code Island to monitor.
@@ -297,8 +297,12 @@ Implementation details worth knowing:
 
 ## Acknowledgments
 
-Code Island follows the lineage of notch-first agent monitors such as [claude-island](https://github.com/farouqaldori/claude-island), and adapts that idea into a broader multi-client session surface with hooks, app-server sync, and IDE routing.
+Code Island is a fork of [ping-island](https://github.com/erha19/ping-island/), adapted for internal decoupling and iteration. We gratefully acknowledge the original project and its contributors.
+
+Code Island also follows the lineage of notch-first agent monitors such as [claude-island](https://github.com/farouqaldori/claude-island), and adapts that idea into a broader multi-client session surface with hooks, app-server sync, and IDE routing.
 
 ## License
 
-Apache 2.0 - see [LICENSE.md](LICENSE.md).
+MIT - see [LICENSE.md](LICENSE.md).
+
+This project is derived from [ping-island](https://github.com/erha19/ping-island/) (Apache 2.0) and has been relicensed under MIT for internal use.

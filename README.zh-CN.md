@@ -23,7 +23,7 @@
   <img src="https://img.shields.io/badge/macOS-14%2B-0A84FF?style=flat-square&logo=apple&logoColor=white" alt="macOS 14 或更高">
   <img src="https://img.shields.io/badge/Swift-6.1-FA7343?style=flat-square&logo=swift&logoColor=white" alt="Swift 6.1">
   <img src="https://img.shields.io/badge/Clients-11%2B-111827?style=flat-square" alt="支持 11 个以上客户端">
-  <img src="https://img.shields.io/badge/License-Apache%202.0-4F46E5?style=flat-square" alt="Apache 2.0 许可证">
+  <img src="https://img.shields.io/badge/License-MIT-4F46E5?style=flat-square" alt="MIT 许可证">
 </p>
 
 <p align="center">
@@ -134,7 +134,7 @@ SSH 远程支持是 Code Island 的正式能力，而不是额外脚本。它可
 
 ### 下载发行版
 
-1. 先访问[官网](https://erha19.github.io/code-island/)查看产品介绍和最新下载入口，或直接打开 [Releases](https://github.com/erha19/code-island/releases)
+1. 先访问[Git仓库](https://git.n.xiaomi.com/cloudpm/codeisland/)查看产品介绍和最新下载入口，或直接打开 [Releases](https://git.n.xiaomi.com/cloudpm/codeisland/releases)
 2. 下载最新的 DMG 或 zip 包
 3. 将 `Code Island.app` 拖到 Applications
 4. 启动应用，并打开你希望 Code Island 监控的客户端
@@ -306,8 +306,12 @@ Claude / Codex / Gemini CLI / OpenCode / Cursor / Qoder / CodeBuddy / WorkBuddy 
 
 ## 致谢
 
+Code Island fork 自 [ping-island](https://github.com/erha19/ping-island/)，在原项目基础上进行了解耦和内部迭代。感谢原项目及其贡献者。
+
 Code Island 延续了 [claude-island](https://github.com/farouqaldori/claude-island) 这类刘海式 Agent 监视器的思路，并把它扩展到了多客户端 hooks、Codex app-server 同步和 IDE 路由能力上。
 
 ## 许可证
 
-Apache 2.0，详见 [LICENSE.md](LICENSE.md)。
+MIT，详见 [LICENSE.md](LICENSE.md)。
+
+本项目衍生自 [ping-island](https://github.com/erha19/ping-island/)（Apache 2.0 许可证），已按 MIT 许可证重新授权用于内部使用。
