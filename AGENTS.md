@@ -1,0 +1,171 @@
+# AGENTS.md
+
+This file is a routing layer for coding agents working in this repo. Keep it short. Put long-lived detail in nearby code, focused docs, or tests.
+
+## Mission
+
+- `CodeIsland` is a macOS menu bar app that surfaces Dynamic Island-style status for Claude Code, Codex, Gemini CLI, Hermes Agent, Qwen Code, and compatible hook-driven agent sessions.
+- The main runtime path is:
+  - hook or app-server events
+  - monitoring and service layers
+  - `SessionStore`
+  - `SessionMonitor` and `NotchViewModel`
+  - SwiftUI notch UI
+- There are two important codepaths:
+  - `CodeIsland/`: the shipping Xcode app
+  - `Prototype/`: a SwiftPM prototype with focused tests and reference implementations
+
+## Start Here
+
+- Product overview: `README.md`
+- App entry: `CodeIsland/App/CodeIslandApp.swift`, `CodeIsland/App/AppDelegate.swift`
+- Docked/detached presentation orchestration: `CodeIsland/App/IslandPresentationCoordinator.swift`, `CodeIsland/App/WindowManager.swift`
+- First-run surface-mode onboarding and mode-switch UI: `CodeIsland/App/AppDelegate.swift`, `CodeIsland/UI/Window/SettingsWindowController.swift`, `CodeIsland/UI/Views/SettingsWindowView.swift`
+- Main state hub: `CodeIsland/Services/State/SessionStore.swift`
+- Session association cache: `CodeIsland/Services/State/SessionAssociationStore.swift`
+- Usage/quota snapshots for Claude status-line caches and Codex rollout logs: `CodeIsland/Services/Usage/`
+- Native runtime rollout scaffold: `CodeIsland/Services/Runtime/`, `CodeIsland/Core/FeatureFlags.swift`
+- Session bridge for UI: `CodeIsland/Services/Session/SessionMonitor.swift`
+- Notch state and layout: `CodeIsland/Core/NotchViewModel.swift`, `CodeIsland/UI/Views/NotchView.swift`
+- Detached floating capsule: `CodeIsland/UI/Window/DetachedIslandWindowController.swift`, `CodeIsland/UI/Views/DetachedIslandPanelView.swift`, `CodeIsland/UI/Views/IslandOpenedContentView.swift`
+  - Detached pet interactions now keep the pet anchored in place while hover/click previews expand sideways as message-bubble lists; trace both the panel layout and window-anchor math together when changing this flow
+  - Expanded content routing is shared with the docked notch through `IslandOpenedContentView` + `IslandExpandedRouteResolver`; keep hover/click/notification semantics aligned instead of reintroducing detached-only content priorities
+- Global shortcuts and shortcut persistence: `CodeIsland/Services/Shared/GlobalShortcutManager.swift`, `CodeIsland/Utilities/GlobalShortcut.swift`, `CodeIsland/Core/Settings.swift`, `CodeIsland/UI/Views/SettingsWindowView.swift`
+- Claude hook ingress: `Prototype/Sources/IslandBridge/`, `CodeIsland/Services/Hooks/HookInstaller.swift`, `CodeIsland/Services/Hooks/HookSocketServer.swift`
+  - `CodeIslandBridge` is the unified Claude/Codex hook entrypoint and is responsible for terminal, tmux, SSH-remote, and IDE terminal context capture before envelopes hit Swift code
+- Codex ingress: `CodeIsland/Services/Codex/`, `CodeIsland/UI/Views/CodexSessionView.swift`
+  - Hook-less fallback parsing for Codex sessions lives in `CodeIsland/Services/Codex/CodexRolloutParser.swift`
+- Terminal and focus control: `CodeIsland/Services/Tmux/`, `CodeIsland/Services/Window/`, `CodeIsland/Utilities/TerminalVisibilityDetector.swift`
+  - Terminal focus flows currently cover iTerm2, Ghostty, Terminal.app, tmux, and IDE-hosted terminals
+- Remote SSH forwarding and remote-host management: `CodeIsland/Services/Remote/`
+  - Remote hosts can bootstrap a bridge on the SSH target, rewrite remote hooks, install managed plugin-directory integrations such as Hermes under the remote home directory, and attach a bidirectional forwarding channel back into CodeIsland
+- Provider/client routing: bridge envelopes are normalized in `CodeIsland/Services/Hooks/HookSocketServer.swift`, stored on `SessionState`, and launched via `CodeIsland/Services/Window/SessionLauncher.swift`
+- Client profile registry: installable hook clients and runtime client branding / recognition are centralized in `CodeIsland/Models/ClientProfile.swift`
+- VS Code-compatible IDE focus extension install / URI launch: `CodeIsland/Services/Window/IDEExtensionInstaller.swift`, `CodeIsland/Services/Window/TerminalSessionFocuser.swift`
+- Session list UI: `CodeIsland/UI/Views/SessionListView.swift`
+- Client mascot system: `CodeIsland/UI/Components/MascotView.swift`, `CodeIsland/UI/Views/MascotSettingsView.swift`
+- App updates and release notes: `CodeIsland/Services/Update/`, `CodeIsland/UI/Views/ReleaseNotesWindowView.swift`, `CodeIsland/UI/Window/ReleaseNotesWindowController.swift`
+- Sparkle build configuration: `Config/App.xcconfig`, `Config/LocalSecrets.xcconfig`, `docs/sparkle-release.md`
+
+## Repo Map
+
+- `CodeIsland/App`: app lifecycle, window setup, screen observation
+- `CodeIsland/Core`: notch geometry, shared state, app settings, selectors
+- `CodeIsland/Models`: domain models for sessions, events, tools, phases
+- `CodeIsland/Services`: ingestion, socket handling, state management, tmux, windows, updates
+- `CodeIsland/Services/Usage`: Claude status-line quota cache readers plus Codex rollout quota readers for UI usage summaries
+- `CodeIsland/Services/Runtime`: isolated native Claude/Codex runtime work. This path should coexist with the current implementation behind feature flags until parity is proven.
+- `CodeIsland/Services/Remote`: remote endpoint persistence, SSH bootstrap / attach, and remote hook forwarding
+  - Remote bootstrap currently covers JSON hook configs, managed hook directories, and managed plugin directories (for example remote Hermes installs under `~/.hermes/plugins/code_island`)
+- `CodeIsland/Services/Update`: Sparkle updater bridge, appcast/release-notes loading, update state publishing
+- `CodeIsland/Services/Window/IDEExtensionInstaller.swift`: installs the VS Code-compatible terminal-focus extension used by Cursor / VS Code / CodeBuddy / Qoder style IDE hosts (`QoderWork` is hook-only, not an IDE extension host)
+- `CodeIsland/UI`: SwiftUI views, reusable components, AppKit-backed window controllers
+- `CodeIsland/Resources`: hook assets, entitlements, bundled fonts
+- `Prototype`: Swift package prototype and testbed
+- `Prototype/Tests`: logic-level unit tests plus process/socket e2e coverage for `IslandBridge`, hook mapping, and install flows
+- `scripts`: release, signing, and packaging automation
+- `Config`: checked-in build configuration defaults plus optional local-only secrets overrides
+
+## Change Routing
+
+- If you change hook payload shape or hook event semantics, update these together:
+  - `Prototype/Sources/IslandBridge/`
+  - `CodeIsland/Services/Hooks/HookSocketServer.swift`
+  - `CodeIsland/Models/SessionEvent.swift`
+  - `CodeIsland/Services/State/SessionStore.swift`
+  - the affected UI under `CodeIsland/UI/`
+- If you change provider/client detection or click-through behavior, trace through `HookSocketServer`, `SessionStore`, `SessionState`, `SessionLauncher`, and the session list / hover UI so labels and launch targets stay in sync.
+- If you add a Claude-compatible hook client, start in `CodeIsland/Models/ClientProfile.swift` and wire any truly client-specific behavior from there before adding new ad-hoc switches elsewhere.
+  - Gemini CLI hooks are managed through `~/.gemini/settings.json`; its `BeforeTool` / `AfterTool` matchers are regex-based, so use `.*` rather than Claude-style `*`.
+  - Hermes Agent CLI integration must use plugin hooks under `~/.hermes/plugins/code_island/`; `~/.hermes/hooks/` is gateway-only and will not fire in the Hermes CLI, so keep Code Island on `ctx.register_hook()`-based plugin registration instead of gateway hook directories.
+  - Qwen Code hooks are managed through `~/.qwen/settings.json`; follow the official Qwen Code hook event names (`PreToolUse`, `PostToolUseFailure`, `Notification`, `Stop`, etc.) and remember that `Notification` matcher values are exact notification types such as `permission_prompt`, `idle_prompt`, and `auth_success`.
+  - OpenClaw hooks are managed as a generated internal hook directory under `~/.openclaw/hooks/<hook-name>/` and require the paired enablement entry in `~/.openclaw/openclaw.json`; treat it as a directory-discovery integration, not a JSON hook list.
+  - Gemini `Notification` hooks are observability-only in the upstream protocol; do not treat them as actionable approval callbacks unless the bridge grows explicit Gemini response handling.
+  - Qoder-family hook installs currently cover both `~/.qoder/settings.json` and `~/.qoderwork/settings.json`; keep their event lists and bridge arguments aligned unless the clients diverge on protocol.
+  - OpenCode is managed as a generated plugin file under `~/.config/opencode/plugins/code-island.js`; treat it as a plugin-based integration, not a JSON hooks file.
+  - `QoderWork` should not be added to `ideExtensionProfiles` unless it actually ships VS Code-compatible extension support in the future.
+- If you change how sessions are associated across relaunches or between hook/app-server ingress paths, inspect both `SessionStore` and `SessionAssociationStore` so cached client metadata stays compatible.
+- If you change the new native runtime rollout path, keep it isolated from the legacy hook/app-server flow. Reuse shared `SessionState`-driven views, but keep runtime orchestration, persistence, and feature gating under `CodeIsland/Services/Runtime/` and `CodeIsland/Core/FeatureFlags.swift`.
+- If you change session lifecycle or transitions, start in `SessionStore`. Avoid ad-hoc state mutation elsewhere.
+  - Current rule: provider-originated end events should preserve the session in `.ended` so it stays visible in the list; only explicit user archive/removal should delete it from `SessionStore`.
+  - Primary list rule: sessions with no new activity for 30 minutes should auto-hide from the primary list until fresh hook/file/app-server activity updates `lastActivity`; sessions that need manual attention should stay visible.
+- If you change notch sizing, opening behavior, or visibility, inspect both `NotchViewModel` and `NotchView`.
+- If you change docked/detached Island transitions or drag-to-detach behavior, trace through `IslandPresentationCoordinator`, `WindowManager`, `NotchViewModel`, `NotchWindowController`, and `DetachedIslandWindowController` together so gesture gating, content resolution, and re-docking stay aligned.
+- If you change the persisted surface mode or first-run onboarding, trace through `AppDelegate`, `WindowManager`, `IslandPresentationCoordinator`, `SettingsWindowController`, `SettingsWindowView`, and `Settings.swift` together so launch-time routing and in-app switching stay aligned.
+- If you change global shortcuts, shortcut persistence, or shortcut hints, trace through `CodeIsland/Services/Shared/GlobalShortcutManager.swift`, `CodeIsland/Utilities/GlobalShortcut.swift`, `CodeIsland/Core/Settings.swift`, `CodeIsland/UI/Views/SettingsWindowView.swift`, `CodeIsland/UI/Components/GlobalShortcutHintView.swift`, and the relevant notch/chat/session-list views together so registration, customization, and visible hints stay aligned.
+- If you change built-in notification sounds or startup audio, inspect `CodeIsland/Core/Settings.swift`, `CodeIsland/Core/SoundPackCatalog.swift`, `CodeIsland/UI/Views/SettingsWindowView.swift`, `CodeIsland/App/AppDelegate.swift`, and `CodeIsland/Resources/Sounds/` together so mode selection, fixed mappings, previews, and bundled assets stay aligned.
+- If you change client mascot selection or mascot animations, trace through `CodeIsland/Models/ClientProfile.swift`, `CodeIsland/Core/Settings.swift`, `CodeIsland/UI/Components/MascotView.swift`, and the mascot callsites in `NotchView`, `SessionListView`, `SessionHoverPreviewView`, and `MascotSettingsView` so runtime overrides and previews stay aligned.
+- If you change completion-result popup behavior, trace through `SessionStore`, `SessionMonitor`, `CodeIsland/UI/Views/NotchView.swift`, and `CodeIsland/UI/Views/SessionCompletionNotificationView.swift` so completion detection, queueing, and auto-dismiss timing stay aligned.
+- If you change tmux or terminal focusing, trace through `Services/Tmux`, `Services/Window`, and `TerminalVisibilityDetector`.
+- If you change IDE terminal jump behavior, inspect both `TerminalSessionFocuser` and `IDEExtensionInstaller`, plus the integration settings UI so install state and URI schemes stay aligned.
+- If you change Codex behavior, verify both the monitor layer under `CodeIsland/Services/Codex/` and the UI under `CodeIsland/UI/Views/CodexSessionView.swift`.
+- If you change app updates or release notes, trace through `CodeIsland/Services/Update/`, `CodeIsland/Info.plist`, the settings UI, and `scripts/create-release.sh` so appcast assets, runtime config, and update messaging stay aligned.
+- If you change Sparkle configuration keys or hosting assumptions, update `Config/App.xcconfig`, `Config/LocalSecrets.example.xcconfig`, `scripts/generate-keys.sh`, and `docs/sparkle-release.md` together.
+- If you only need logic-level confidence, prefer adding or updating tests under `Prototype/Tests`.
+
+## Build And Test
+
+- Full repo regression:
+  - `./scripts/test.sh`
+- App debug build:
+  - `xcodebuild -project CodeIsland.xcodeproj -scheme CodeIsland -configuration Debug build`
+- App release build:
+  - `xcodebuild -project CodeIsland.xcodeproj -scheme CodeIsland -configuration Release build`
+- Root Xcode unit tests:
+  - `xcodebuild -project CodeIsland.xcodeproj -scheme CodeIsland -configuration Debug CODE_SIGNING_ALLOWED=NO test -only-testing:CodeIslandTests`
+- Root Xcode UI tests:
+  - `xcodebuild -project CodeIsland.xcodeproj -scheme CodeIsland -configuration Debug CODE_SIGN_IDENTITY=- test -only-testing:CodeIslandUITests`
+  - macOS may block the UI test runner until a valid local signing identity is available; if `CodeIslandUITests-Runner` stays launch-suspended, inspect `amfid` and `AppleSystemPolicy` logs before treating it as an app regression
+- Prototype tests:
+  - `swift test --package-path Prototype`
+- Bridge-focused e2e slice:
+  - `swift test --package-path Prototype --filter IslandBridgeE2ETests`
+- Mascot GIF export for docs/resources:
+  - `./scripts/render-mascots.sh`
+- Release automation:
+  - `./scripts/build.sh`
+  - `./scripts/package-release.sh`
+  - `./scripts/package-unsigned.sh`
+  - `./scripts/create-release.sh`
+  - `./scripts/generate-keys.sh`
+  - GitHub Actions: `.github/workflows/release-packages.yml` imports a Developer ID certificate from repository secrets, notarizes the exported app, publishes signed `dmg` / `zip` assets plus a zipped Linux `CodeIslandBridge` remote-agent payload to the matching GitHub Release for a `v*` tag or manual dispatch, and should treat the DMG as the primary manual-install artifact
+- Release scripts assume local signing and notarization tooling. They may modify `build/`, `releases/`, and `.sparkle-keys/`.
+
+## Working Rules
+
+- Respect existing uncommitted changes. Do not revert unrelated work.
+- Prefer narrow edits. This repo currently has active changes in UI and session-flow files.
+- Treat documentation upkeep as part of the change, not follow-up work.
+- When writing or updating tests, do not use the user's local filesystem paths as example values; prefer repo-relative, generic, or clearly synthetic paths instead.
+- Every major feature change or refactor must review and update `AGENTS.md` plus any affected adjacent docs, tests, scripts, or inline code comments that describe the old behavior.
+- Prefer code search over guesswork:
+  - `rg "process\\(" CodeIsland`
+  - `rg "Hook|hook" CodeIsland`
+  - `rg "Codex" CodeIsland Prototype`
+  - `rg "tmux|Tmux" CodeIsland`
+- When adding new state, decide deliberately whether it belongs in:
+  - SwiftUI view-local `@State`
+  - shared `ObservableObject` state
+  - actor-owned `SessionStore` state
+- When adding bundled assets or fonts, make sure app startup initializes them.
+- Keep this file high-signal. If a section becomes long, move the durable detail into a dedicated markdown doc and link it here.
+
+## Verification Checklist
+
+- Can the main Xcode scheme still build?
+- If the change is a major feature or refactor, was `AGENTS.md` reviewed and updated to reflect the new structure, ownership, entrypoints, or verification steps?
+- If session ingestion changed, do both Claude and Codex sessions still appear and update?
+- If session lifecycle changed, do ended sessions remain visible until the user archives them, and do final Claude/Codex messages still land before the row settles into `.ended`?
+- If idle-session visibility changed, do sessions auto-hide after 30 minutes of inactivity and reappear when a new message or hook/app-server event arrives?
+- If detached Island behavior changed, can the docked notch still click-open normally, drag-detach from closed/opened states, and re-dock cleanly without duplicate windows?
+- If approval or intervention flows changed, do approve, deny, and answer paths still resolve cleanly?
+- If focus logic changed, does tmux and non-tmux behavior still degrade safely?
+- If release tooling changed, avoid running notarization or signing steps unless the task explicitly requires them.
+
+## Current Reality
+
+- The main shipping target is the Xcode project, not the Swift package under `Prototype/`.
+- The root project now includes `CodeIslandTests` and `CodeIslandUITests` targets for app-level state and settings-window coverage.
+- `Prototype/Tests` remains the fastest place for logic-level unit tests plus process/socket e2e coverage.
+- Sparkle update discovery is expected to use the GitHub Releases `latest/download/appcast.xml` asset unless a local override explicitly replaces it.
+- The worktree may already be dirty. Check `git status` before broad edits.

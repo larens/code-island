@@ -1,0 +1,48 @@
+import XCTest
+@testable import Code_Island
+
+final class ClientProfileIconTests: XCTestCase {
+    func testManagedHookProfilesUseBundledLogosForSettings() throws {
+        let expectedAssets = [
+            "claude-hooks": "ClaudeLogo",
+            "codex-hooks": "CodexLogo",
+            "gemini-hooks": "GeminiLogo",
+            "openclaw-hooks": "OpenClawLogo",
+            "codebuddy-hooks": "CodeBuddyLogo",
+            "workbuddy-hooks": "WorkBuddyLogo",
+            "cursor-hooks": "CursorLogo",
+            "qoder-hooks": "QoderLogo",
+            "qoderwork-hooks": "QoderWorkLogo",
+            "copilot-hooks": "CopilotLogo",
+            "opencode-hooks": "OpenCodeLogo",
+        ]
+
+        for (profileID, assetName) in expectedAssets {
+            let profile = try XCTUnwrap(
+                ClientProfileRegistry.managedHookProfile(id: profileID),
+                "Missing managed hook profile \(profileID)"
+            )
+            XCTAssertEqual(profile.logoAssetName, assetName)
+            XCTAssertTrue(profile.prefersBundledLogoOverAppIcon)
+        }
+    }
+
+    func testIDEExtensionProfilesUseBundledLogosForSettings() throws {
+        let expectedAssets = [
+            "vscode-extension": "VSCodeLogo",
+            "cursor-extension": "CursorLogo",
+            "codebuddy-extension": "CodeBuddyLogo",
+            "workbuddy-extension": "WorkBuddyLogo",
+            "qoder-extension": "QoderLogo",
+        ]
+
+        for (profileID, assetName) in expectedAssets {
+            let profile = try XCTUnwrap(
+                ClientProfileRegistry.ideExtensionProfile(id: profileID),
+                "Missing IDE extension profile \(profileID)"
+            )
+            XCTAssertEqual(profile.logoAssetName, assetName)
+            XCTAssertTrue(profile.prefersBundledLogoOverAppIcon)
+        }
+    }
+}
