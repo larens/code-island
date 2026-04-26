@@ -56,19 +56,6 @@
   <sub>Claude Code · Codex · Gemini CLI · Hermes Agent · Qwen Code · OpenClaw · OpenCode · Cursor · Qoder · CodeBuddy · GitHub Copilot</sub>
 </p>
 
-<a id="buddy-detach"></a>
-## Buddy Detach in v0.5.0+
-
-Starting in `v0.5.0` - the first release after `v0.4.0` - Code Island can detach the active Buddy from the notch. Press and hold the notch, drag the Buddy upward out of the notch area, and it becomes an independent floating companion that stays with you across other windows.
-
-<p align="center">
-  <img src="docs/images/code-island-0.5.0-buddy-detach.png" width="960" alt="Code Island v0.5.0 Buddy detach poster">
-</p>
-
-- **Three-step interaction** - press and hold, drag outward, then let go to keep the Buddy floating.
-- **Independent floating presence** - keep session awareness visible even when you are no longer watching the top notch.
-- **Free placement with low disruption** - move the Buddy where it helps without pinning it to the menu bar.
-- **Same Island context** - the floating Buddy still represents the same live session, mascot identity, and progress cues.
 
 ## What is Code Island?
 
@@ -96,10 +83,6 @@ Code Island focuses on the moments that actually interrupt coding flow, then kee
 
 <a id="supported-tools"></a>
 ## Supported Tools
-
-<p align="center">
-  <img src="docs/images/code-island-mascot-poster.png" width="960" alt="Code Island supported tools poster">
-</p>
 
 Code Island also ships VS Code-compatible focus extensions for VS Code, Cursor, CodeBuddy, WorkBuddy, and Qoder. `QoderWork` is hook-only today and does not participate in the IDE extension path.
 

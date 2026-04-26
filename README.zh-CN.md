@@ -54,20 +54,6 @@
   <sub>Claude Code · Codex · Gemini CLI · Hermes Agent · Qwen Code · OpenClaw · OpenCode · Cursor · Qoder · CodeBuddy · GitHub Copilot</sub>
 </p>
 
-<a id="buddy-detach"></a>
-## Buddy 离岛（v0.5.0+）
-
-从 `v0.5.0` 开始，也就是 `v0.4.0` 之后的首个版本，Code Island 支持把当前 Buddy 宠物从刘海里拖出来。长按刘海后向上拖出刘海区域，松手后它就会变成独立悬浮的小伙伴，在你切换到其他窗口时继续陪着你。
-
-<p align="center">
-  <img src="docs/images/code-island-0.5.0-buddy-detach-cn.png" width="960" alt="Code Island v0.5.0 Buddy 离岛海报">
-</p>
-
-- **三步完成** - 长按刘海、向外拖出、松手后保持独立悬浮。
-- **独立悬浮陪伴** - 不必一直盯着顶部刘海，也能持续感知当前会话状态。
-- **自由拖动、不打断工作** - 宠物可以放到更顺手的位置，而不是只能固定在菜单栏顶部。
-- **会话上下文不断线** - 离岛后的 Buddy 仍然代表同一个实时会话、客户端形象和进度提示。
-
 ## Code Island 是什么？
 
 Code Island 是一个 macOS 菜单栏应用。当你的编码 Agent 需要你处理审批、输入或查看结果时，它会展开成一个类似 Dynamic Island 的悬浮界面。它能接 Claude 风格 hooks、Codex hooks、Gemini CLI hooks、Hermes Agent plugin hooks、Qwen Code hooks、OpenClaw internal hooks + session transcripts、Codex app-server、OpenCode 插件，以及兼容 IDE 的集成层，所以你不用一直盯着终端标签页，也能看到会话状态。
