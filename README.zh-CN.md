@@ -34,7 +34,7 @@
 </p>
 
 <p align="center">
-  <sub>官网：<a href="https://erha19.github.io/code-island/">erha19.github.io/code-island</a></sub>
+  <sub>官网：<a href="https://git.n.xiaomi.com/cloudpm/codeisland/">git.n.xiaomi.com/cloudpm/codeisland</a></sub>
 </p>
 
 <p align="center">
