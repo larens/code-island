@@ -1,0 +1,135 @@
+<Page
+    x:Class="CodeIsland.Windows.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:services="using:CodeIsland.Windows.Services"
+    Background="Transparent">
+
+    <Grid Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Settings"
+                   Style="{ThemeResource SubtitleTextBlockStyle}"
+                   Margin="0,0,0,16" />
+
+        <!-- Settings Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="24">
+
+                <!-- General Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="General"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                    <ToggleSwitch Header="Launch at startup"
+                                  IsOn="{x:Bind ViewModel.LaunchAtStartup, Mode=TwoWay}" />
+
+                    <StackPanel>
+                        <TextBlock Text="Language" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Languages}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedLanguage, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Height="1" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
+
+                <!-- Display Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Display"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                    <StackPanel>
+                        <TextBlock Text="Theme" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Themes}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </StackPanel>
+
+                <Border Height="1" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
+
+                <!-- Hooks Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Hooks"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.HookProfiles}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="services:ClientProfileStatus">
+                                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                        CornerRadius="8" Padding="16" Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Icon -->
+                                        <FontIcon Grid.Column="0"
+                                                  Glyph="&#xE703;"
+                                                  FontSize="24"
+                                                  Margin="0,0,12,0"
+                                                  VerticalAlignment="Center" />
+
+                                        <!-- Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Profile.Title}"
+                                                       Style="{ThemeResource BodyTextBlockStyle}" />
+                                            <TextBlock Text="{x:Bind Profile.Subtitle}"
+                                                       Style="{ThemeResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+
+                                        <!-- Toggle -->
+                                        <ToggleSwitch Grid.Column="2"
+                                                      IsOn="{x:Bind Enabled, Mode=TwoWay}"
+                                                      VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <Border Height="1" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
+
+                <!-- Sound Section -->
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Sound"
+                               Style="{ThemeResource BodyStrongTextBlockStyle}" />
+
+                    <StackPanel>
+                        <TextBlock Text="Notification Sound" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{x:Bind ViewModel.Sounds}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedSound, Mode=TwoWay}"
+                                  HorizontalAlignment="Stretch" />
+                    </StackPanel>
+
+                    <StackPanel>
+                        <TextBlock Text="Volume" Margin="0,0,0,4" />
+                        <Slider Minimum="0" Maximum="1"
+                                Value="{x:Bind ViewModel.SoundVolume, Mode=TwoWay}"
+                                HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Save Button -->
+        <Button Grid.Row="2"
+                Content="Save Settings"
+                Command="{x:Bind ViewModel.SaveSettingsCommand}"
+                Style="{ThemeResource AccentButtonStyle}"
+                HorizontalAlignment="Stretch"
+                Margin="0,12,0,0" />
+    </Grid>
+</Page>

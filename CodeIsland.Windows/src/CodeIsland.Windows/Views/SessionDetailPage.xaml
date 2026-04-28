@@ -1,0 +1,113 @@
+<Page
+    x:Class="CodeIsland.Windows.Views.SessionDetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="Transparent"
+    NavigationCacheMode="Disabled">
+
+    <Grid Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header with back button -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    Click="OnBackClick"
+                    VerticalAlignment="Center"
+                    Margin="0,0,8,0">
+                <FontIcon Glyph="&#xE72B;" FontFamily="Segoe MDL2 Assets" FontSize="14" />
+            </Button>
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="{x:Bind ViewModel.Session.ProjectName, Mode=OneWay}"
+                           Style="{ThemeResource SubtitleTextBlockStyle}" />
+                <TextBlock Text="{x:Bind ViewModel.Session.Provider, Mode=OneWay}"
+                           Style="{ThemeResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Session Info -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="16">
+                <!-- Status -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8" Padding="16">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Status"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.Session.Phase.Kind, Mode=OneWay}"
+                                   Style="{ThemeResource BodyTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.Session.Cwd, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Latest Message -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8" Padding="16"
+                        Visibility="{x:Bind ViewModel.HasMessage, Mode=OneWay}">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Latest"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.Session.LatestHookMessage, Mode=OneWay}"
+                                   Style="{ThemeResource BodyTextBlockStyle}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Pending Permission -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        CornerRadius="8" Padding="16"
+                        Visibility="{x:Bind ViewModel.HasPendingPermission, Mode=OneWay}">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Permission Required"
+                                   Style="{ThemeResource BodyStrongTextBlockStyle}"
+                                   Foreground="{ThemeResource SystemAccentColor}" />
+                        <TextBlock Text="{x:Bind ViewModel.ToolName, Mode=OneWay}"
+                                   Style="{ThemeResource BodyTextBlockStyle}" />
+                        <TextBlock Text="{x:Bind ViewModel.ToolInput, Mode=OneWay}"
+                                   Style="{ThemeResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   MaxLines="5" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="2" Margin="0,12,0,0"
+              Visibility="{x:Bind ViewModel.HasPendingPermission, Mode=OneWay}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    Content="Deny"
+                    Command="{x:Bind ViewModel.DenyToolCommand}"
+                    HorizontalAlignment="Stretch"
+                    Margin="0,0,4,0" />
+            <Button Grid.Column="1"
+                    Content="Allow"
+                    Command="{x:Bind ViewModel.ApproveToolCommand}"
+                    HorizontalAlignment="Stretch"
+                    Margin="4,0"
+                    Style="{ThemeResource AccentButtonStyle}" />
+            <Button Grid.Column="2"
+                    Content="Always Allow"
+                    Command="{x:Bind ViewModel.AlwaysAllowCommand}"
+                    HorizontalAlignment="Stretch"
+                    Margin="4,0,0,0" />
+        </Grid>
+    </Grid>
+</Page>
