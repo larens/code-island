@@ -917,16 +917,7 @@ struct SessionState: Equatable, Identifiable, Sendable {
 
     /// Whether the session list should offer a manual archive action for this row.
     nonisolated var shouldShowArchiveActionInPrimaryUI: Bool {
-        switch phase {
-        case .idle:
-            return true
-        case .waitingForInput:
-            return intervention == nil
-        case .ended:
-            return Date().timeIntervalSince(lastActivity) >= Self.endedArchiveActionDelay
-        case .processing, .compacting, .waitingForApproval:
-            return false
-        }
+        phase == .idle
     }
 
     nonisolated func shouldSortBeforeInQueue(_ other: SessionState) -> Bool {

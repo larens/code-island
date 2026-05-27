@@ -366,6 +366,8 @@ struct HookInstaller {
         case .hookDirectory:
             return profile.configurationURLs.contains { containsManagedHookDirectory(at: $0, profile: profile) }
                 && isInternalHookEnabled(profile)
+        case .kiroIDEHooks:
+            return containsKiroIDEHooks(at: profile.primaryConfigurationURL, profile: profile)
         }
     }
 
@@ -408,6 +410,8 @@ struct HookInstaller {
                 writeManagedHookDirectory(at: url, profile: profile)
             }
             setInternalHookEnabled(true, for: profile)
+        case .kiroIDEHooks:
+            writeKiroIDEHooks(at: profile.primaryConfigurationURL, profile: profile)
         }
 
         if profile.id == "qwen-code-hooks" {
@@ -441,6 +445,8 @@ struct HookInstaller {
                 removeManagedHookDirectory(at: url, profile: profile)
             }
             setInternalHookEnabled(false, for: profile)
+        case .kiroIDEHooks:
+            removeKiroIDEHooks(at: profile.primaryConfigurationURL, profile: profile)
         }
     }
 
@@ -965,6 +971,124 @@ struct HookInstaller {
             let fileURL = url.appendingPathComponent(name)
             try? Data(content.utf8).write(to: fileURL, options: .atomic)
         }
+    }
+
+    // MARK: - Kiro IDE Hooks
+
+    private static let kiroIDEHookFilePrefix = "code-island-"
+    private static let kiroIDEHookFileSuffix = ".json"
+
+    private static func writeKiroIDEHooks(at directoryURL: URL, profile: ManagedHookClientProfile) {
+        let fileManager = FileManager.default
+        try? fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+
+        let bridgeCommand = bridgeCommandLine(for: profile)
+        let marker = managedMarker(for: profile)
+
+        for event in profile.events {
+            let hookJSON = kiroIDEHookFileContent(
+                eventType: event.name,
+                bridgeCommand: bridgeCommand,
+                marker: marker,
+                toolTypes: event.templates.isEmpty ? nil : event.templates.compactMap { template in
+                    switch template {
+                    case .matcher(let value): return value
+                    case .plain: return nil
+                    }
+                }
+            )
+            let fileName = "\(kiroIDEHookFilePrefix)\(event.name)\(kiroIDEHookFileSuffix)"
+            let fileURL = directoryURL.appendingPathComponent(fileName)
+            try? Data(hookJSON.utf8).write(to: fileURL, options: .atomic)
+        }
+    }
+
+    private static func removeKiroIDEHooks(at directoryURL: URL, profile: ManagedHookClientProfile) {
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: directoryURL.path) else { return }
+
+        let marker = managedMarker(for: profile)
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: nil
+        ) else { return }
+
+        for fileURL in contents {
+            guard fileURL.lastPathComponent.hasPrefix(kiroIDEHookFilePrefix),
+                  fileURL.pathExtension == "json" else { continue }
+            guard let content = try? String(contentsOf: fileURL, encoding: .utf8),
+                  content.contains(marker) else { continue }
+            try? fileManager.removeItem(at: fileURL)
+        }
+    }
+
+    private static func containsKiroIDEHooks(at directoryURL: URL, profile: ManagedHookClientProfile) -> Bool {
+        let fileManager = FileManager.default
+        guard fileManager.fileExists(atPath: directoryURL.path) else { return false }
+
+        let marker = managedMarker(for: profile)
+        guard let contents = try? fileManager.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: nil
+        ) else { return false }
+
+        return contents.contains { fileURL in
+            guard fileURL.lastPathComponent.hasPrefix(kiroIDEHookFilePrefix),
+                  fileURL.pathExtension == "json" else { return false }
+            guard let content = try? String(contentsOf: fileURL, encoding: .utf8) else { return false }
+            return content.contains(marker)
+        }
+    }
+
+    private static func kiroIDEHookFileContent(
+        eventType: String,
+        bridgeCommand: String,
+        marker: String,
+        toolTypes: [String]?
+    ) -> String {
+        var when: [String: Any] = ["type": eventType]
+        if let toolTypes, !toolTypes.isEmpty {
+            when["toolTypes"] = toolTypes
+        }
+
+        let whenData = (try? JSONSerialization.data(
+            withJSONObject: when,
+            options: [.sortedKeys]
+        )) ?? Data()
+        let whenJSON = String(data: whenData, encoding: .utf8) ?? "{}"
+
+        let thenDict: [String: Any] = [
+            "type": "runCommand",
+            "command": "\(bridgeCommand) --event \(eventType) || true"
+        ]
+        let thenData = (try? JSONSerialization.data(
+            withJSONObject: thenDict,
+            options: [.sortedKeys]
+        )) ?? Data()
+        let thenJSON = String(data: thenData, encoding: .utf8) ?? "{}"
+
+        return """
+        {
+          "_comment": "\(marker)",
+          "name": "Code Island - \(eventType)",
+          "version": "1.0.0",
+          "description": "Forward \(eventType) events to Code Island for session monitoring",
+          "when": \(whenJSON),
+          "then": \(thenJSON)
+        }
+        """
+    }
+
+    private static func bridgeCommandLine(for profile: ManagedHookClientProfile) -> String {
+        let bridgePath = islandSupportDirectory()
+            .appendingPathComponent("bin", isDirectory: true)
+            .appendingPathComponent(bridgeLauncherName)
+            .path
+        var args = [bridgePath, "--source", profile.bridgeSource]
+        args.append(contentsOf: profile.bridgeExtraArguments)
+        return args.map { arg in
+            arg.contains(" ") ? "\"\(arg)\"" : arg
+        }.joined(separator: " ")
     }
 
     private static func removeManagedHookDirectory(at url: URL, profile: ManagedHookClientProfile) {
@@ -2393,6 +2517,8 @@ struct HookInstaller {
         case .hookDirectory:
             writeManagedHookDirectory(at: url, profile: profile)
             setInternalHookEnabled(true, for: profile, customConfigURL: activationConfigURL)
+        case .kiroIDEHooks:
+            writeKiroIDEHooks(at: url, profile: profile)
         }
 
         let installation = CustomHookInstallation(
@@ -2428,6 +2554,8 @@ struct HookInstaller {
             case .hookDirectory:
                 removeManagedHookDirectory(at: url, profile: profile)
                 setInternalHookEnabled(false, for: profile, customConfigURL: activationConfigURL)
+            case .kiroIDEHooks:
+                removeKiroIDEHooks(at: url, profile: profile)
             }
         }
 
@@ -2451,6 +2579,8 @@ struct HookInstaller {
             let activationConfigURL = customActivationConfigurationURL(for: profile, installedURL: url)
             return containsManagedHookDirectory(at: url, profile: profile)
                 && isInternalHookEnabled(at: activationConfigURL, for: profile)
+        case .kiroIDEHooks:
+            return containsKiroIDEHooks(at: url, profile: profile)
         }
     }
 
@@ -2594,7 +2724,7 @@ struct HookInstaller {
             } else {
                 json["plugin"] = filteredPlugins
             }
-        case .pluginDirectory, .hookDirectory:
+        case .pluginDirectory, .hookDirectory, .kiroIDEHooks:
             break
         }
 
@@ -2680,6 +2810,8 @@ struct HookInstaller {
                 return baseDirectory.appendingPathComponent(profile.primaryConfigurationURL.lastPathComponent, isDirectory: true)
             }
             return baseDirectory.appendingPathComponent(profile.primaryConfigurationURL.lastPathComponent, isDirectory: true)
+        case .kiroIDEHooks:
+            return baseDirectory.appendingPathComponent("hooks", isDirectory: true)
         }
     }
 
@@ -2690,7 +2822,7 @@ struct HookInstaller {
                 return baseDirectory.deletingLastPathComponent().appendingPathComponent("config.json")
             }
             return baseDirectory.appendingPathComponent("config.json")
-        case .jsonHooks, .pluginDirectory:
+        case .jsonHooks, .pluginDirectory, .kiroIDEHooks:
             return nil
         case .hookDirectory:
             break
@@ -2710,7 +2842,7 @@ struct HookInstaller {
         switch profile.installationKind {
         case .pluginFile:
             return installedURL.deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("config.json")
-        case .jsonHooks, .pluginDirectory:
+        case .jsonHooks, .pluginDirectory, .kiroIDEHooks:
             return nil
         case .hookDirectory:
             break

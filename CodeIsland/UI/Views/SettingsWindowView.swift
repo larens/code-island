@@ -2098,6 +2098,8 @@ private struct CustomHookInstallSheet: View {
             return "例如 /path/to/.hermes 或 /path/to/plugins"
         case .hookDirectory:
             return "例如 /path/to/.openclaw 或 /path/to/hooks"
+        case .kiroIDEHooks:
+            return "例如 /path/to/.kiro/hooks"
         }
     }
 
@@ -2110,7 +2112,7 @@ private struct CustomHookInstallSheet: View {
             return AppLocalization.string("OpenClaw 可选择 ~/.openclaw 根目录，或已配置到 extraDirs 的 hooks 目录。")
         case .pluginDirectory:
             return AppLocalization.string("Hermes 可选择 ~/.hermes 根目录，或 plugins 目录。")
-        case .jsonHooks, .pluginFile:
+        case .jsonHooks, .pluginFile, .kiroIDEHooks:
             return nil
         }
     }
@@ -2145,6 +2147,8 @@ private struct CustomHookInstallSheet: View {
             } else {
                 targetURL = baseURL.appendingPathComponent(resolvedFileName, isDirectory: true)
             }
+        case .kiroIDEHooks:
+            targetURL = baseURL.appendingPathComponent("hooks", isDirectory: true)
         }
 
         return AppLocalization.format("安装后将写入: %@", targetURL.path)

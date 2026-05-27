@@ -63,6 +63,8 @@ extension SessionClientBrand {
             return Color.white.opacity(0.72)
         case .copilot:
             return TerminalColors.green
+        case .kiro:
+            return Color(red: 0.62, green: 0.40, blue: 0.94)
         }
     }
 }

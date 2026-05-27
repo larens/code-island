@@ -16,6 +16,7 @@ enum SessionClientBrand: String, Codable, Equatable, Sendable {
     case opencode
     case qoder
     case copilot
+    case kiro
     case neutral
 }
 
@@ -34,6 +35,7 @@ enum ManagedHookInstallationKind: Sendable, Equatable {
     case pluginFile
     case pluginDirectory
     case hookDirectory
+    case kiroIDEHooks
 }
 
 struct HookInstallEventDescriptor: Sendable {
@@ -170,6 +172,8 @@ struct ManagedHookClientProfile: Identifiable, Sendable {
             return "这会重新生成 %@ 的 Island 插件目录，并覆盖旧的 Island 托管版本。"
         case .hookDirectory:
             return "这会重新生成 %@ 的 Island hook 目录，并刷新 OpenClaw 的启用状态。"
+        case .kiroIDEHooks:
+            return "这会重新生成 %@ 的 ~/.kiro/hooks/ 下的 Island hook 文件。"
         }
     }
 
@@ -367,7 +371,7 @@ struct ManagedIDEExtensionProfile: Identifiable, Sendable {
 
     nonisolated var prefersWorkspaceWindowRouting: Bool {
         switch uriScheme {
-        case "vscode", "cursor", "trae", "codebuddy", "qoder", "qoder-work":
+        case "vscode", "cursor", "trae", "codebuddy", "qoder", "qoder-work", "kiro":
             return true
         default:
             return false
@@ -761,6 +765,31 @@ enum ClientProfileRegistry {
             brand: .opencode,
             events: []
         ),
+        ManagedHookClientProfile(
+            id: "kiro-hooks",
+            title: "Kiro",
+            subtitle: "管理 ~/.kiro/hooks/ 下的 IDE hook 文件，监控 Kiro IDE 会话状态",
+            installationKind: .kiroIDEHooks,
+            logoAssetName: "KiroLogo",
+            prefersBundledLogoOverAppIcon: true,
+            localAppBundleIdentifiers: ["dev.kiro.desktop"],
+            iconSymbolName: "wand.and.stars",
+            configurationRelativePath: ".kiro/hooks",
+            bridgeSource: "claude",
+            bridgeExtraArguments: [
+                "--client-kind", "kiro",
+                "--client-name", "Kiro",
+                "--client-originator", "Kiro"
+            ],
+            defaultEnabled: true,
+            brand: .kiro,
+            events: [
+                HookInstallEventDescriptor(name: "promptSubmit", templates: [.plain]),
+                HookInstallEventDescriptor(name: "preToolUse", templates: [.matcher("*")]),
+                HookInstallEventDescriptor(name: "postToolUse", templates: [.matcher("*")]),
+                HookInstallEventDescriptor(name: "agentStop", templates: [.plain]),
+            ]
+        ),
     ]
 
     nonisolated static let runtimeProfiles: [SessionClientProfile] = [
@@ -975,6 +1004,21 @@ enum ClientProfileRegistry {
             bundleIdentifiers: []
         ),
         SessionClientProfile(
+            id: "kiro",
+            provider: .claude,
+            family: .claudeHooks,
+            kind: .claudeCode,
+            displayName: "Kiro",
+            assistantLabelMode: .badgeLabel,
+            brand: .kiro,
+            defaultBundleIdentifier: nil,
+            defaultOrigin: nil,
+            recognizedKinds: ["kiro", "kiro-ide", "kiro_ide", "kiro ide"],
+            exactAliases: ["kiro", "kiro-ide", "kiro ide"],
+            keywordAliases: ["kiro"],
+            bundleIdentifiers: ["dev.kiro.desktop"]
+        ),
+        SessionClientProfile(
             id: "codex-app",
             provider: .codex,
             family: .codexHooks,
@@ -1104,6 +1148,21 @@ enum ClientProfileRegistry {
             exactBundleIdentifiers: ["com.qoder.ide"],
             bundleIdentifierKeywords: ["qoder.ide"],
             appNameKeywords: ["qoder"]
+        ),
+        ManagedIDEExtensionProfile(
+            id: "kiro-extension",
+            title: "Kiro",
+            subtitle: "安装 Code Island，支持终端精准聚焦",
+            logoAssetName: "KiroLogo",
+            prefersBundledLogoOverAppIcon: true,
+            localAppBundleIdentifiers: ["dev.kiro.desktop"],
+            iconSymbolName: "wand.and.stars",
+            extensionRootRelativePath: ".kiro-ide/extensions",
+            extensionRegistryRelativePath: ".kiro-ide/extensions/extensions.json",
+            uriScheme: "kiro",
+            exactBundleIdentifiers: ["dev.kiro.desktop"],
+            bundleIdentifierKeywords: ["kiro"],
+            appNameKeywords: ["kiro"]
         ),
     ]
 

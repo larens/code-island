@@ -17,7 +17,13 @@ public enum HookPayloadMapper {
         environment: [String: String],
         stdinData: Data
     ) -> BridgeEnvelope {
-        let rawPayload = BridgeCodec.readJSONObject(from: stdinData) ?? [:]
+        let effectiveStdinData: Data
+        if stdinData.isEmpty, let userPrompt = environment["USER_PROMPT"], !userPrompt.isEmpty {
+            effectiveStdinData = Data(userPrompt.utf8)
+        } else {
+            effectiveStdinData = stdinData
+        }
+        let rawPayload = BridgeCodec.readJSONObject(from: effectiveStdinData) ?? [:]
         let payload = normalizedPayload(rawPayload, source: source)
         let effectiveEnvironment = bridgedEnvironment(environment: environment, payload: payload)
         let eventType = detectEventType(arguments: arguments, payload: payload)

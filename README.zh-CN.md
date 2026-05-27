@@ -48,15 +48,16 @@
   <img src="docs/images/mascots/cursor.gif" width="36" alt="Cursor gif" title="Cursor">&nbsp;
   <img src="docs/images/mascots/qoder.gif" width="36" alt="Qoder gif" title="Qoder">&nbsp;
   <img src="docs/images/mascots/codebuddy.gif" width="36" alt="CodeBuddy gif" title="CodeBuddy">&nbsp;
-  <img src="docs/images/mascots/copilot.gif" width="36" alt="GitHub Copilot gif" title="GitHub Copilot">
+  <img src="docs/images/mascots/copilot.gif" width="36" alt="GitHub Copilot gif" title="GitHub Copilot">&nbsp;
+  <img src="docs/images/mascots/kiro.gif" width="36" alt="Kiro gif" title="Kiro">
 </p>
 <p align="center">
-  <sub>Claude Code · Codex · Gemini CLI · Hermes Agent · Qwen Code · OpenClaw · OpenCode · Cursor · Qoder · CodeBuddy · GitHub Copilot</sub>
+  <sub>Claude Code · Codex · Gemini CLI · Hermes Agent · Qwen Code · OpenClaw · OpenCode · Cursor · Qoder · CodeBuddy · GitHub Copilot · Kiro</sub>
 </p>
 
 ## Code Island 是什么？
 
-Code Island 是一个 macOS 菜单栏应用。当你的编码 Agent 需要你处理审批、输入或查看结果时，它会展开成一个类似 Dynamic Island 的悬浮界面。它能接 Claude 风格 hooks、Codex hooks、Gemini CLI hooks、Hermes Agent plugin hooks、Qwen Code hooks、OpenClaw internal hooks + session transcripts、Codex app-server、OpenCode 插件，以及兼容 IDE 的集成层，所以你不用一直盯着终端标签页，也能看到会话状态。
+Code Island 是一个 macOS 菜单栏应用。当你的编码 Agent 需要你处理审批、输入或查看结果时，它会展开成一个类似 Dynamic Island 的悬浮界面。它能接 Claude 风格 hooks、Codex hooks、Gemini CLI hooks、Hermes Agent plugin hooks、Qwen Code hooks、OpenClaw internal hooks + session transcripts、Codex app-server、OpenCode 插件、Kiro IDE hooks，以及兼容 IDE 的集成层，所以你不用一直盯着终端标签页，也能看到会话状态。
 
 如果你了解过 [Vibe Island](https://vibeisland.app/)，可以把 Code Island 理解成同一产品方向下的独立开源替代方案：它同样是一个原生 macOS 刘海区 / 菜单栏界面，用来监控和控制 AI 编码会话。
 
@@ -79,7 +80,7 @@ Code Island 关注的，是那些真正会打断编码节奏的时刻，并把�
 - **原地处理** - 直接在刘海界面里批准工具调用、拒绝请求、回答追问。
 - **一键跳回现场** - 快速回到对应的 iTerm2、Ghostty、Terminal.app、tmux pane 或 IDE 窗口。
 - **SSH 终端支持** - 可以通过 SSH 自动引导远程 CodeIslandBridge，把远程 Claude 兼容 hooks 重写到桥接入口，并把远程终端里的事件统一回流到你本机的 Island 界面。
-- **多 Agent 统一收口** - 在一个菜单栏入口里持续跟踪 Claude Code、Codex、Gemini CLI、Hermes Agent、Qwen Code、OpenClaw、OpenCode、Cursor、Qoder、CodeBuddy、WorkBuddy、GitHub Copilot 等兼容会话。
+- **多 Agent 统一收口** - 在一个菜单栏入口里持续跟踪 Claude Code、Codex、Gemini CLI、Hermes Agent、Qwen Code、OpenClaw、OpenCode、Cursor、Qoder、CodeBuddy、WorkBuddy、GitHub Copilot、Kiro 等兼容会话。
 - **OpenClaw Gateway 支持** - 先通过 OpenClaw internal hooks 快速拿到会话事件，再从本地 session transcript 回填完整对话，让 Island 不只显示单条入站消息。
 - **Codex hooks + app-server** - 同时支持 Codex CLI hooks、实时 app-server 线程同步，以及 rollout 解析兜底。
 - **自定义音效** - 可按事件选择 macOS 系统音，也支持导入本地 sound pack。
@@ -104,10 +105,13 @@ Code Island 关注的，是那些真正会打断编码节奏的时刻，并把�
 | <img src="docs/images/product-icons/codebuddy-app-icon.png" width="32" alt="CodeBuddy 产品图标"> | CodeBuddy | Hook 集成 + 可选 IDE 扩展 | 应用窗口 + 终端 | Claude 家族会话跟踪 |
 | <img src="docs/images/product-icons/workbuddy-app-icon.png" width="32" alt="WorkBuddy 产品图标"> | WorkBuddy | Hook 集成 + 可选 IDE 扩展 | 应用窗口 + 终端 | Claude 家族会话跟踪 |
 | <img src="CodeIsland/Assets.xcassets/CopilotLogo.imageset/copilot-logo.png" width="32" alt="GitHub Copilot 产品图标"> | GitHub Copilot | Copilot hook 协议 | 兼容终端宿主 | Copilot CLI / Agent hooks 事件 |
+| <img src="CodeIsland/Assets.xcassets/KiroLogo.imageset/kiro-logo.png" width="32" alt="Kiro 产品图标"> | Kiro | Kiro IDE hooks（`~/.kiro/hooks/`） | Kiro IDE 窗口 | 用户输入、工具前后事件、Agent 停止 |
 
-Code Island 另外还提供 VS Code 兼容的聚焦扩展，可用于 VS Code、Cursor、CodeBuddy、WorkBuddy 和 Qoder。`QoderWork` 当前仅走 hook 接入，不参与 IDE 扩展路径。
+Code Island 另外还提供 VS Code 兼容的聚焦扩展，可用于 VS Code、Cursor、CodeBuddy、WorkBuddy、Qoder 和 Kiro。`QoderWork` 当前仅走 hook 接入，不参与 IDE 扩展路径。
 
 Hermes Agent 现在通过生成 `~/.hermes/plugins/code_island/` 目录来接入。因为 Hermes 的 `~/.hermes/hooks/` 只在 gateway 生效，不会在 CLI 里触发，所以 Code Island 走的是官方 `ctx.register_hook()` 插件机制，专门观察用户输入、工具调用、回复完成和会话结束。
+
+Kiro IDE 通过 `~/.kiro/hooks/` 下的托管 hook 文件接入。Code Island 会为每个事件生成独立的 JSON hook 文件，Kiro IDE 运行时会自动加载并在对话过程中触发 bridge，把用户输入、工具活动和 Agent 停止事件转发到 Island UI。Kiro 也有 CLI 版本，使用 `~/.kiro/settings.json` 走和 Claude Code 相同的 hooks 协议。
 
 Qwen Code 现在按一等公民客户端处理，直接管理 `~/.qwen/settings.json`，并配套默认宠物“薄荷围巾卡皮巴拉”。这个形象保留了 Qwen 的青绿色识别，但整体更稳、更耐看，也更适合长对话和连续追问场景。
 
@@ -266,7 +270,7 @@ my-pack/
 ## 工作原理
 
 ```text
-Claude / Codex / Gemini CLI / OpenCode / Cursor / Qoder / CodeBuddy / WorkBuddy / Copilot / ...
+Claude / Codex / Gemini CLI / OpenCode / Cursor / Qoder / CodeBuddy / WorkBuddy / Copilot / Kiro / ...
   -> hook 或 app-server 事件
     -> Code Island 监控与归一化层
       -> SessionStore
@@ -281,6 +285,7 @@ Claude / Codex / Gemini CLI / OpenCode / Cursor / Qoder / CodeBuddy / WorkBuddy 
 - Gemini CLI hooks 会安装到 `~/.gemini/settings.json`，其中工具 matcher 要使用 Gemini 的正则语法。
 - Qwen Code hooks 会安装到 `~/.qwen/settings.json`，桥接层沿用官方事件名，并把 `Stop` / `SessionEnd` / `Notification` 的消息内容转成 Island 可直接展示的提示与弹窗文案。
 - OpenCode 使用生成到 `~/.config/opencode/plugins/` 下的插件文件接入。
+- Kiro IDE 通过 `~/.kiro/hooks/` 下的托管 hook 文件接入；bridge 从 Kiro IDE 传给 shell command hooks 的 `USER_PROMPT` 环境变量中读取事件 payload。
 - 远程 SSH 主机可以自动引导 `CodeIslandBridge`，重写远程 Claude 兼容 hooks 指向桥接入口，并把远程事件回流到本机 Code Island。
 - 聚焦路由覆盖 iTerm2、Ghostty、Terminal.app、tmux 和 VS Code 兼容 IDE 扩展。
 

@@ -121,18 +121,8 @@ final class AppSettingsPersistenceTests: XCTestCase {
         XCTAssertEqual(defaults.object(forKey: "autoOpenCompactedNotificationPanel") as? Bool, false)
     }
 
-    func testAutomaticUpdateChecksEnabledPersists() {
-        let defaults = makeDefaults()
-        let store = makeStore(defaults: defaults)
-
-        XCTAssertTrue(store.automaticUpdateChecksEnabled)
-
-        store.automaticUpdateChecksEnabled = false
-
-        let reloadedStore = makeStore(defaults: defaults)
-        XCTAssertFalse(reloadedStore.automaticUpdateChecksEnabled)
-        XCTAssertEqual(defaults.object(forKey: "automaticUpdateChecksEnabled") as? Bool, false)
-    }
+    // NOTE: testAutomaticUpdateChecksEnabledPersists removed — the property
+    // was never added to AppSettingsStore (pre-existing dead test).
 
     func testUsageVisibilityPersists() {
         let defaults = makeDefaults()

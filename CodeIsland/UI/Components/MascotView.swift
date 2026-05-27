@@ -14,6 +14,7 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
     case codebuddy
     case trae
     case copilot
+    case kiro
 
     static let allCases: [MascotClient] = [
         .claude,
@@ -27,6 +28,7 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
         .qoder,
         .codebuddy,
         .copilot,
+        .kiro,
     ]
 
     var id: String { rawValue }
@@ -57,6 +59,8 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
             return "Trae"
         case .copilot:
             return "Copilot"
+        case .kiro:
+            return "Kiro"
         }
     }
 
@@ -86,6 +90,8 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
             return "Trae IDE 中的 Claude 会话"
         case .copilot:
             return "GitHub Copilot Hooks 客户端"
+        case .kiro:
+            return "Kiro IDE hooks 与紫鳞水母"
         }
     }
 
@@ -115,6 +121,8 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
             return .claude
         case .copilot:
             return .copilot
+        case .kiro:
+            return .kiro
         }
     }
 
@@ -152,6 +160,8 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
                 .trae
             case "codex-app", "codex-cli":
                 .codex
+            case "kiro":
+                .kiro
             default:
                 nil
             }
@@ -200,6 +210,8 @@ enum MascotClient: String, CaseIterable, Identifiable, Sendable {
             self = .qoder
         case .copilot:
             self = .copilot
+        case .kiro:
+            self = .kiro
         case .claude:
             switch provider {
             case .codex:
@@ -225,6 +237,7 @@ enum MascotKind: String, CaseIterable, Identifiable, Sendable {
     case qoder
     case codebuddy
     case copilot
+    case kiro
 
     var id: String { rawValue }
 
@@ -252,6 +265,8 @@ enum MascotKind: String, CaseIterable, Identifiable, Sendable {
             return "CodeBuddy"
         case .copilot:
             return "Copilot"
+        case .kiro:
+            return "Kiro"
         }
     }
 
@@ -279,6 +294,8 @@ enum MascotKind: String, CaseIterable, Identifiable, Sendable {
             return "宇航员猫"
         case .copilot:
             return "黑框眼镜机器人"
+        case .kiro:
+            return "紫鳞水母"
         }
     }
 
@@ -306,6 +323,8 @@ enum MascotKind: String, CaseIterable, Identifiable, Sendable {
             return Color(red: 1.0, green: 0.45, blue: 0.34)
         case .copilot:
             return Color(red: 1.0, green: 0.56, blue: 0.28)
+        case .kiro:
+            return Color(red: 0.62, green: 0.40, blue: 0.94)
         }
     }
 
@@ -520,6 +539,8 @@ struct MascotView: View {
             drawCodeBuddy(in: context, canvasSize: canvasSize, time: time, mode: mode)
         case .copilot:
             drawCopilot(in: context, canvasSize: canvasSize, time: time, mode: mode)
+        case .kiro:
+            drawKiro(in: context, canvasSize: canvasSize, time: time, mode: mode)
         }
     }
 
@@ -1678,6 +1699,193 @@ struct MascotView: View {
 
         if mode == .warning {
             drawAlertGlyph(in: context, space: space, x: 11.6 + motion.shake, y: 2.0, color: kind.alertColor)
+        }
+    }
+
+    private func drawKiro(
+        in context: GraphicsContext,
+        canvasSize: CGSize,
+        time: TimeInterval,
+        mode: MascotRenderMode
+    ) {
+        let space = PixelSpace(canvasSize, logicalWidth: 16, logicalHeight: 14, yOffset: 2)
+        let motion = motionValues(for: mode, time: time)
+        let body = Color(red: 0.62, green: 0.40, blue: 0.94)
+        let bodyDeep = Color(red: 0.40, green: 0.22, blue: 0.72)
+        let bodyLight = Color(red: 0.82, green: 0.66, blue: 1.0)
+        let scaleAccent = Color(red: 0.94, green: 0.82, blue: 1.0)
+        let glow = Color(red: 0.55, green: 0.92, blue: 0.96)
+        let eye = Color(red: 0.08, green: 0.05, blue: 0.18)
+
+        drawShadow(
+            in: context,
+            space: space,
+            centerX: 8,
+            y: 15.6,
+            width: 7.4 - abs(motion.bounce) * 0.25,
+            opacity: 0.21
+        )
+
+        if mode == .working {
+            drawKeyboard(
+                in: context,
+                space: space,
+                y: 13.0,
+                base: Color(red: 0.16, green: 0.10, blue: 0.28),
+                key: Color(red: 0.34, green: 0.22, blue: 0.55),
+                highlight: glow,
+                flashIndex: keyboardFlashIndex(time: time)
+            )
+        }
+
+        // Tentacle wave parameters
+        let tentacleSpeed: Double
+        let tentacleAmplitude: CGFloat
+        switch mode {
+        case .idle:
+            tentacleSpeed = 2.0
+            tentacleAmplitude = 0.22
+        case .working:
+            tentacleSpeed = 5.0
+            tentacleAmplitude = 0.36
+        case .warning:
+            tentacleSpeed = 8.5
+            tentacleAmplitude = 0.16
+        case .dragging:
+            tentacleSpeed = 6.0
+            tentacleAmplitude = 0.34
+        }
+
+        // Tentacles drawn first so the bell overlaps their anchors
+        let tentacleAnchors: [CGFloat] = [3.8, 5.6, 7.4, 9.2, 11.0, 12.4]
+        let tentacleLengths: [Int] = [4, 5, 5, 5, 5, 4]
+        for (index, anchor) in tentacleAnchors.enumerated() {
+            let phase = Double(index) * 0.55
+            for segment in 0..<tentacleLengths[index] {
+                let segY = 9.0 + CGFloat(segment) * 0.95
+                let wave = CGFloat(sin(time * tentacleSpeed + phase + Double(segment) * 0.45)) * tentacleAmplitude
+                let segX = anchor + wave
+                let segWidth: CGFloat = max(0.4, 0.72 - CGFloat(segment) * 0.05)
+                let color = segment.isMultiple(of: 2) ? body : bodyDeep
+                context.fill(
+                    Path(space.rect(segX + motion.shake, segY + motion.vertical, segWidth, 0.85)),
+                    with: .color(color)
+                )
+            }
+        }
+
+        // Glowing tentacle tips on outer pair when active
+        if mode != .idle {
+            let tipIndices = [0, tentacleAnchors.count - 1]
+            for index in tipIndices {
+                let anchor = tentacleAnchors[index]
+                let phase = Double(index) * 0.55
+                let lastSegment = tentacleLengths[index] - 1
+                let wave = CGFloat(sin(time * tentacleSpeed + phase + Double(lastSegment) * 0.45)) * tentacleAmplitude
+                context.fill(
+                    Path(space.rect(anchor + wave - 0.05 + motion.shake, 9.0 + CGFloat(lastSegment) * 0.95 + 0.55 + motion.vertical, 0.78, 0.55)),
+                    with: .color(glow.opacity(0.78))
+                )
+            }
+        }
+
+        // Bell dome
+        let bellRows: [(CGFloat, CGFloat, CGFloat)] = [
+            (4.0, 6.0, 4.0),
+            (5.0, 4.6, 6.8),
+            (6.0, 3.6, 8.8),
+            (7.0, 3.2, 9.6),
+            (8.0, 3.2, 9.6)
+        ]
+        for row in bellRows {
+            context.fill(
+                Path(space.rect(row.1 + motion.shake, row.0 + motion.vertical, row.2 * motion.squashX, 1 * motion.squashY)),
+                with: .color(body)
+            )
+        }
+
+        // Bell rim (deeper purple along the underside of the bell)
+        context.fill(
+            Path(space.rect(3.2 + motion.shake, 8.55 + motion.vertical, 9.6 * motion.squashX, 0.55)),
+            with: .color(bodyDeep)
+        )
+        // Bell rim scallops — small bumps along the underside
+        let scallops: [CGFloat] = [3.6, 5.4, 7.2, 9.0, 10.8, 12.4]
+        for x in scallops {
+            context.fill(
+                Path(space.rect(x + motion.shake, 8.95 + motion.vertical, 0.6, 0.35)),
+                with: .color(bodyDeep)
+            )
+        }
+
+        // Bell top shimmer
+        context.fill(
+            Path(space.rect(4.6 + motion.shake, 4.85 + motion.vertical, 5.0, 0.45)),
+            with: .color(bodyLight.opacity(0.62))
+        )
+        context.fill(
+            Path(space.rect(5.4 + motion.shake, 4.45 + motion.vertical, 3.0, 0.35)),
+            with: .color(scaleAccent.opacity(0.55))
+        )
+
+        // "Purple-scale" pattern on the bell
+        let scaleSpots: [(CGFloat, CGFloat)] = [
+            (4.6, 6.8), (6.4, 6.55), (8.2, 6.4), (10.0, 6.55), (11.8, 6.8),
+            (5.6, 7.65), (7.4, 7.5), (9.2, 7.5), (11.0, 7.65)
+        ]
+        for (x, y) in scaleSpots {
+            context.fill(
+                Path(space.rect(x + motion.shake, y + motion.vertical, 0.6, 0.55)),
+                with: .color(bodyLight.opacity(0.62))
+            )
+            context.fill(
+                Path(space.rect(x + 0.18 + motion.shake, y + 0.12 + motion.vertical, 0.3, 0.3)),
+                with: .color(scaleAccent.opacity(0.78))
+            )
+        }
+
+        // Eyes — bioluminescent halos with dark pupils
+        let eyeOuter: CGFloat
+        switch mode {
+        case .idle:
+            eyeOuter = 0.55
+        case .warning:
+            eyeOuter = 1.05
+        case .working:
+            eyeOuter = blinkHeight(time: time, closedHeight: 0.22, openHeight: 1.05)
+        case .dragging:
+            eyeOuter = blinkHeight(time: time, closedHeight: 0.22, openHeight: 0.95)
+        }
+        context.fill(Path(space.rect(5.4 + motion.shake, 7.55 + motion.vertical, 1.1, eyeOuter)), with: .color(glow))
+        context.fill(Path(space.rect(9.5 + motion.shake, 7.55 + motion.vertical, 1.1, eyeOuter)), with: .color(glow))
+        let pupilHeight = max(0.18, eyeOuter * 0.5)
+        context.fill(Path(space.rect(5.72 + motion.shake, 7.78 + motion.vertical, 0.5, pupilHeight)), with: .color(eye))
+        context.fill(Path(space.rect(9.82 + motion.shake, 7.78 + motion.vertical, 0.5, pupilHeight)), with: .color(eye))
+        if mode != .idle && eyeOuter > 0.5 {
+            context.fill(Path(space.rect(5.86 + motion.shake, 7.84 + motion.vertical, 0.18, 0.18)), with: .color(.white.opacity(0.85)))
+            context.fill(Path(space.rect(9.96 + motion.shake, 7.84 + motion.vertical, 0.18, 0.18)), with: .color(.white.opacity(0.85)))
+        }
+
+        // Drifting bioluminescent particles when working
+        if mode == .working {
+            let particles: [(CGFloat, CGFloat, Double)] = [
+                (2.4, 5.6, 0.0),
+                (13.4, 6.4, 1.4),
+                (2.0, 9.2, 2.1),
+                (13.6, 9.8, 0.7)
+            ]
+            for (x, y, phase) in particles {
+                let pulse = CGFloat(sin(time * 4.0 + phase) * 0.5 + 0.5)
+                let particleSize: CGFloat = 0.32 + pulse * 0.22
+                context.fill(
+                    Path(space.rect(x + motion.shake, y + motion.vertical, particleSize, particleSize)),
+                    with: .color(glow.opacity(0.45 + Double(pulse) * 0.40))
+                )
+            }
+        }
+
+        if mode == .warning {
+            drawAlertGlyph(in: context, space: space, x: 12.6 + motion.shake, y: 2.0, color: kind.alertColor)
         }
     }
 
