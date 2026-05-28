@@ -329,6 +329,7 @@ final class SessionStateTests: XCTestCase {
             sessionId: "attention-visible",
             cwd: "/tmp/project",
             phase: .waitingForApproval(permission),
+            hasEverActivated: true,
             lastActivity: Date().addingTimeInterval(-(31 * 60))
         )
 
@@ -354,6 +355,7 @@ final class SessionStateTests: XCTestCase {
             sessionId: "ended-archive-waiting",
             cwd: "/tmp/project",
             phase: .ended,
+            hasEverActivated: true,
             lastActivity: Date().addingTimeInterval(-(9 * 60))
         )
 

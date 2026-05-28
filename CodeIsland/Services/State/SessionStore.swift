@@ -251,6 +251,7 @@ actor SessionStore {
                 lastUserMessageDate: nil
             ),
             needsClearReconciliation: existing?.needsClearReconciliation ?? false,
+            hasEverActivated: existing?.hasEverActivated ?? false,
             lastActivity: Date(),
             createdAt: existing?.createdAt ?? handle.createdAt
         )
@@ -352,6 +353,7 @@ actor SessionStore {
 
         if event.status == "ended", !shouldPreserveEndedStopForAnsweredQuestion {
             markSessionEnded(&session)
+            session.hasEverActivated = true
             sessions[sessionId] = session
             syncLinkedQoderChildSessions(for: session)
             if session.clientInfo.isQwenCodeClient {
@@ -461,6 +463,14 @@ actor SessionStore {
         }
 
         associateQoderChildSessionIfNeeded(sessionId: sessionId, event: event, session: &session)
+
+        // Mark the session as activated once it transitions beyond idle or receives content.
+        if !session.hasEverActivated {
+            session.hasEverActivated = session.phase != .idle
+                || session.latestHookMessage != nil
+                || !session.chatItems.isEmpty
+                || session.intervention != nil
+        }
 
         sessions[sessionId] = session
         syncLinkedQoderChildSessions(for: session)
@@ -1345,6 +1355,14 @@ actor SessionStore {
             if session.phase == .waitingForInput {
                 session.phase = .processing
             }
+        }
+
+        // Mark the session as activated once it has real content.
+        if !session.hasEverActivated {
+            session.hasEverActivated = session.phase != .idle
+                || session.latestHookMessage != nil
+                || !session.chatItems.isEmpty
+                || session.intervention != nil
         }
 
         sessions[payload.sessionId] = session
@@ -2385,6 +2403,14 @@ actor SessionStore {
             )
         }
 
+        // Mark the session as activated once it has real content or a non-idle phase.
+        if !session.hasEverActivated {
+            session.hasEverActivated = session.phase != .idle
+                || session.latestHookMessage != nil
+                || !session.chatItems.isEmpty
+                || session.intervention != nil
+        }
+
         sessions[resolvedSessionId] = session
         publishState()
         updateCodexPlaceholderPrune(for: session)
@@ -2529,6 +2555,14 @@ actor SessionStore {
         Self.logger.debug(
             "Codex snapshot sync session=\(resolvedSessionId, privacy: .public) sourceThread=\(snapshot.threadId, privacy: .public) ingress=\(ingress.rawValue, privacy: .public) historyItems=\(snapshot.historyItems.count, privacy: .public) namePresent=\(snapshot.name?.isEmpty == false, privacy: .public) previewPresent=\(snapshot.preview?.isEmpty == false, privacy: .public) filePathPresent=\(session.clientInfo.sessionFilePath?.isEmpty == false, privacy: .public) placeholderCandidate=\(placeholderCandidate, privacy: .public)"
         )
+
+        // Mark the session as activated once it has real content or a non-idle phase.
+        if !session.hasEverActivated {
+            session.hasEverActivated = session.phase != .idle
+                || session.latestHookMessage != nil
+                || !session.chatItems.isEmpty
+                || session.intervention != nil
+        }
 
         sessions[resolvedSessionId] = session
         publishState()
@@ -3185,6 +3219,7 @@ actor SessionStore {
             subagentState: previousSession.subagentState,
             conversationInfo: previousSession.conversationInfo,
             needsClearReconciliation: previousSession.needsClearReconciliation,
+            hasEverActivated: previousSession.hasEverActivated,
             lastActivity: previousSession.lastActivity,
             createdAt: previousSession.createdAt
         )

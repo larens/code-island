@@ -101,6 +101,12 @@ struct SessionState: Equatable, Identifiable, Sendable {
     /// This removes pre-/clear items that no longer exist in the JSONL
     var needsClearReconciliation: Bool
 
+    // MARK: - Activation Tracking
+
+    /// Whether this session has ever transitioned beyond idle (received real interaction).
+    /// Sessions that have never activated are hidden from the primary UI until they do.
+    var hasEverActivated: Bool
+
     // MARK: - Timestamps
 
     var lastActivity: Date
@@ -144,6 +150,7 @@ struct SessionState: Equatable, Identifiable, Sendable {
             lastToolName: nil, firstUserMessage: nil, lastUserMessageDate: nil
         ),
         needsClearReconciliation: Bool = false,
+        hasEverActivated: Bool = false,
         lastActivity: Date = Date(),
         createdAt: Date = Date()
     ) {
@@ -175,6 +182,7 @@ struct SessionState: Equatable, Identifiable, Sendable {
         self.subagentState = subagentState
         self.conversationInfo = conversationInfo
         self.needsClearReconciliation = needsClearReconciliation
+        self.hasEverActivated = hasEverActivated
         self.lastActivity = lastActivity
         self.createdAt = createdAt
     }
@@ -404,6 +412,11 @@ struct SessionState: Equatable, Identifiable, Sendable {
     /// Safety net for ghost Codex sessions that have no rollout, no history, and no visible content.
     nonisolated var shouldHideFromPrimaryUI: Bool {
         if shouldAutoArchiveFromPrimaryUI {
+            return true
+        }
+
+        // Hide sessions that have never received real interaction (just created, never processed).
+        if !hasEverActivated {
             return true
         }
 
@@ -916,8 +929,10 @@ struct SessionState: Equatable, Identifiable, Sendable {
     }
 
     /// Whether the session list should offer a manual archive action for this row.
+    /// Idle sessions that have been activated can be manually archived by the user;
+    /// they will re-appear when new hook/app-server activity arrives.
     nonisolated var shouldShowArchiveActionInPrimaryUI: Bool {
-        phase == .idle
+        phase == .idle || phase == .waitingForInput
     }
 
     nonisolated func shouldSortBeforeInQueue(_ other: SessionState) -> Bool {
