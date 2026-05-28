@@ -492,10 +492,10 @@ class NotchViewModel: ObservableObject {
     private func handleMouseMove(_ location: CGPoint) {
         guard presentationMode == .docked else { return }
 
-        let inNotch = isPointInHoverTrigger(location)
+        let inTrigger = isPointInHoverTrigger(location)
         let inOpened = status == .opened && geometry.isPointInOpenedPanel(location, size: openedSize)
 
-        let newHovering = inNotch || inOpened
+        let newHovering = inTrigger || inOpened
 
         // Only update if changed to prevent unnecessary re-renders
         guard newHovering != isHovering else { return }
@@ -506,7 +506,11 @@ class NotchViewModel: ObservableObject {
         hoverTimer?.cancel()
         hoverTimer = nil
 
-        if !newHovering,
+        // Close only when the cursor leaves the expanded panel area (not just the trigger zone).
+        // This keeps the panel open while the user interacts with it even if the cursor
+        // drifts outside the narrow 200pt trigger strip.
+        if !inOpened,
+           !inTrigger,
            status == .opened,
            openReason == .hover,
            !isSettingsPopoverPresented,
@@ -697,11 +701,25 @@ class NotchViewModel: ObservableObject {
         shouldHideWindowPresentation ? -(closedHeight + 12) : 0
     }
 
+    /// Fixed-width hover trigger zone (200pt centered at screen top).
+    private let hoverTriggerZoneWidth: CGFloat = 200
+
     func isPointInHoverTrigger(_ point: CGPoint) -> Bool {
         if shouldHideClosedPresentation {
             return fullscreenRevealTriggerRect.contains(point)
         }
-        return isPointInClosedNotch(point)
+        return hoverTriggerRect.contains(point)
+    }
+
+    /// A narrow 200pt-wide rect centered at the top of the screen used as the
+    /// mouse-enter trigger for the docked notch in normal (non-fullscreen) mode.
+    private var hoverTriggerRect: CGRect {
+        CGRect(
+            x: screenRect.midX - hoverTriggerZoneWidth / 2,
+            y: screenRect.maxY - closedHeight,
+            width: hoverTriggerZoneWidth,
+            height: closedHeight
+        )
     }
 
     private func isPointInClosedNotch(_ point: CGPoint) -> Bool {
